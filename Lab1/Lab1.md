@@ -25,7 +25,7 @@ The username for all servers is **demogod** and you will choose your password wh
 
 ## SQL Data
 
-We need to set up some demo data for the workshop. This will simply involve loading a SQL script in SQL Server. Browse to the server (sql-*uniquestring*)  in the Azure portal and click the Connect button to open an RDP session. When prompted, log into the SQL Server using the username **demogod** and your password. Once logged in, open SQL Server Management Studio and connect to the local server. You won't be able to connect directly from your system since there is a firewall in place, as there would be on a corporate network. Click New Query in the interface to start a new query.
+We need to set up some demo data for the workshop. This will simply involve executing a SQL script against SQL Server. Browse to the Virtual Machine "sql*uniquestring*" (not the SQL Virtual Machine) in the Azure portal and click the Connect button to open an RDP session. When prompted, log into the SQL Server using the username **demogod** and your password. Once logged in, open SQL Server Management Studio and connect to the local "sql01" SQL Server default instance. You won't be able to connect directly from your system since there is a firewall in place, as there would be on a corporate network. Click New Query in the interface to start a new query.
 
 Copy the sql script from [this link](https://raw.githubusercontent.com/davedoesdemos/DataLakeInADay/master/data/salesdata/createDatabase.sql) by selecting all and pressing ctrl+c. Paste this text into the query window on the virtual machine (this may take a few seconds so be patient). Press the execute button and wait for it to complete, this may take a few seconds.
 
@@ -35,7 +35,7 @@ You will now have an example sales database.
 
 ## Storage Containers
 
-Next we need to create the containers on our data lake. Here we'll be using Blob Storage, but you may use Azure Data Lake Storage Gen1 or Gen2 in a real scenario. For what we're doing here the process is almost the same. In the Azure Portal browse for your storage account (datastore-*uniquestring*). Click Blobs
+Next we need to create the containers on our data lake. Here we'll be using Blob Storage, but you may use Azure Data Lake Storage Gen1 or Gen2 in a real scenario. For what we're doing here the process is almost the same. In the Azure Portal browse for your storage account (datastore*uniquestring*). Click Blobs
 
 ![Containers1.png](images/Containers1.png)
 
@@ -49,9 +49,9 @@ Select Private (no anonymous access) and give the container a name of "raw". Cli
 
 ## Self Hosted Integration Runtime
 
-Log into the integration runtime server (ir-*uniquestring*) using the username **demogod** and your password.
+Return to the list of Azure lab resources and Log into the integration runtime server (ir*uniquestring*) the same way you did with the SQL Server virtual machine. Login using the username **demogod** and your password.
 
-In Server Manager, click Local Server then disable IE Enhanced Security Configuration for administrators by clicking the word on next to the setting.
+In Server Manager, click Local Server (either the large Local Server tile or in the top left navigation tree) and then disable IE Enhanced Security Configuration for administrators by clicking the word on next to the setting.
 ![IEEnhancedSecurityConfiguration.png](images/IEEnhancedSecurityConfiguration.png)
 
 Now open Internet explorer and download the runtime from [https://www.microsoft.com/download/details.aspx?id=39717](https://www.microsoft.com/download/details.aspx?id=39717)
@@ -84,7 +84,7 @@ The installer will then launch the configuration manager. Here you can register 
 
 ![RegisterIR1.png](images/RegisterIR1.png)
 
-Browse to your data factory in the Azure Portal and click Author and Monitor
+Browse to your data factory in the Azure Portal (adf*uniquestring*) and click Author and Monitor
 
 ![RegisterIR2.png](images/RegisterIR2.png)
 
@@ -124,7 +124,7 @@ Click refresh in the Azure Data Factory interface and ensure that the new connec
 
 ## Data Factory Connections
 
-Now we need to create two connections in Data Factory. One is for SQL Server, and the other is for Blob Storage. In your data factory go to the connections tab and select "linked Services" then click the New button.
+Now we need to create two connections in Data Factory. One is for the source Sales database you created on the SQL Server VM, and the other is for the Blob Storage we're using as our Data Lake. In your data factory go to the connections tab and select "linked Services" then click the New button.
 
 ![AddConnections.png](images/AddConnections.png)
 
@@ -132,7 +132,7 @@ Now select Azure Blob Storage from the list and click Continue.
 
 ![NewLinkedBlob.png](images/NewLinkedBlob.png)
 
-Now select your subscription and storage account from the drop down lists. Name the linked service "AzureBlobStorage" then click Finish.
+Name the linked service "AzureBlobStorage" and from the dop down lists select your subscription and the storage account you created for the lab (named datastore*uniquestring*). Then click Finish.
 
 ![NewLinkedBlob.png](images/NewLinkedBlob.png)
 
@@ -140,7 +140,11 @@ Now click New again and this time select SQL Server. There are several SQL optio
 
 ![NewLinkedSQL.png](images/NewLinkedSQL.png)
 
-Now fill in the name as SQLServer. Select IntegrationRuntime1 (the one you configured earlier). SQL01 is the server name of the SQL Server - this is the Windows network name not the name of the server in the Azure portal. The runtime uses this to contact the server on the network. The database name is "sales". Select Windows Authentication and type demogod and your password. Now click test to ensure this is working. Once successful, click Finish.
+Now fill in the name as SQLServer. Select IntegrationRuntime1 (the one you configured earlier) from the drop down list. Set the server name to SQL01 and the database name to sales. Next choose Windows Authentication as the authentication type, set the username to demogod and use your password for the password. Click Test connection to make sure everything is working correctly.
+
+The self hosted integration runtime installed on the seperate VM server is in the same vnet (representing our dummy corporate network) as SQL01 and we have previously registered the integration runtime in Azure Data Factory. Azure Data Factory then uses this registered integration runtime as a gateway into the coprorate vnet to enable connectivity between Azure services and our coporate hosted source SQL Server SQL01. 
+
+Now click Finish to add the SqlServer linked service to Azure Data Factory.
 
 ![NewLinkedSQL2.png](images/NewLinkedSQL2.png)
 
@@ -193,11 +197,11 @@ Now click "Publish All" to save your work. You should have 6 datasets as shown h
 
 ![datasets.png](images/datasets.png)
 
-If you click on one of your delimited text datasets you can see on the connection tab the settings for the delimited text. Here we can choose comme delimited (default) or tab etc. as required.
+If you click on one of your delimited text datasets you can see on the connection tab the settings for the delimited text. Here we can choose comma delimited (default) or tab etc. as required. Close the datasets when you're finished reviewing their settings.
 
 ## Data Factory Pipeline
 
-Now click the add button and choose pipeline. Name the pipeline "PipelineDataCopy"
+In the main navigation tree on the left click the add button and choose pipeline. Name the pipeline "PipelineDataCopy"
 
 ![NewPipeline.png](images/NewPipeline.png)
 
@@ -226,7 +230,7 @@ We will replace the two dates and times with parameters so that the query return
 
 On the source tab of the CopyOrders activity, change the radio button from Table to Query. Click in the Query box and then click Add Dynamic Content.
 
-Copy in the following query text. You may need to alter this if your parameter names are not identical. To do this you can remove the "pipeline().parameters.runStartTime" and use the dynamic content tool to select your parameters
+Copy in the following query text. You may need to alter this if your parameter names are not identical. To do this you can remove the "pipeline().parameters.runStartTime" and use the dynamic content tool to select your parameters. Click Finish when you've entered the dynamic content.
 ```SQL
 @concat('SELECT * FROM [sales].[dbo].[orders] WHERE date between ''', pipeline().parameters.runStartTime,''' and ''', pipeline().parameters.runEndTime, '''')
 ```
@@ -237,13 +241,13 @@ Next, click on the Sink tab and click edit next to the dataset. Go to the Parame
 
 ![datasetparameters.png](images/datasetparameters.png)
 
-Click the Connection tab and then in the file box and select add dynamic content. Here paste in `@concat(formatDateTime(dataset().runStartTime, 'yyyy-MM-dd'), '.csv')` and click finish. This will create the file name with the date and a .csv extension.
+Click the Connection tab and then click in the file box and select add dynamic content. Here paste in `@concat(formatDateTime(dataset().runStartTime, 'yyyy-MM-dd'), '.csv')` and click finish. This will create the file name with the date and a .csv extension.
 
 ![datasetFileName.png](images/datasetFileName.png)
 
 ![datasetFileName2.png](images/datasetFileName2.png)
 
-Now click back to the copy job and you'll see you now have an empty box for the parameter of the dataset. Click here and choose runStartTime from the list of parameters in the dynamic content pane. This will pass the value from the pipeline parameter to the dataset parameter when the job runs.
+Now click back to the copy job and you'll see you now have an empty value box for the runStartTime parameter of the dataset. Click inside the empty value box and then click add dynamic content. Choose runStartTime from the list of parameters in the dynamic content pane and click finish. This will pass the value from the pipeline parameter to the dataset parameter when the job runs.
 
 ![copyJobParam.png](images/copyJobParam.png)
 
@@ -266,6 +270,7 @@ Name the trigger TriggerTumblingWindow and then select "Tumbling Window" under T
 Click Next and enter the following in the parameter value boxes. These will take the window start and end times and put them in the parameters we used previously.
 
 runStartTime - `@formatDateTime(trigger().outputs.windowStartTime, 'yyyy-MM-dd HH:mm:ss')`
+
 runEndTime - `@formatDateTime(trigger().outputs.windowEndTime, 'yyyy-MM-dd HH:mm:ss')`
 
 ![newTrigger4.png](images/newTrigger4.png)
