@@ -2,7 +2,7 @@
 
 ## Introduction
 
-***TEST EDIT***
+***TEST GIT EDIT SMorgan***
 
 During this lab we will deploy the infrastructure as shown below. This includes a pretend data centre with database server on a network, behind a firewall.
 
@@ -27,7 +27,7 @@ The username for all servers is **demogod** and you will choose your password wh
 
 ## SQL Data
 
-We need to set up some demo data for the workshop. This will simply involve loading a SQL script in SQL Server. Browse to the server (sql-*uniquestring*)  in the Azure portal and click the Connect button to open an RDP session. When prompted, log into the SQL Server using the username **demogod** and your password. Once logged in, open SQL Server Management Studio and connect to the local server. You won't be able to connect directly from your system since there is a firewall in place, as there would be on a corporate network. Click New Query in the interface to start a new query.
+We need to set up some demo data for the workshop. This will simply involve executing a SQL script in SQL Server to create the source database and load some sample data into it. Browse to the server (sql-*uniquestring*)  in the Azure portal and click the Connect button to open an RDP session. When prompted, log into the SQL Server using the username **demogod** and your password. Once logged in, open SQL Server Management Studio and connect to the local server. You won't be able to connect directly from your system since there is a firewall in place, as there would be on a corporate network. Click New Query in the interface to start a new query.
 
 Copy the sql script from [this link](https://raw.githubusercontent.com/davedoesdemos/DataLakeInADay/master/data/salesdata/createDatabase.sql) by selecting all and pressing ctrl+c. Paste this text into the query window on the virtual machine (this may take a few seconds so be patient). Press the execute button and wait for it to complete, this may take a few seconds.
 
@@ -142,7 +142,11 @@ Now click New again and this time select SQL Server. There are several SQL optio
 
 ![NewLinkedSQL.png](images/NewLinkedSQL.png)
 
-Now fill in the name as SQLServer. Select IntegrationRuntime1 (the one you configured earlier). SQL01 is the server name of the SQL Server - this is the Windows network name not the name of the server in the Azure portal. The runtime uses this to contact the server on the network. The database name is "sales". Select Windows Authentication and type demogod and your password. Now click test to ensure this is working. Once successful, click Finish.
+Now fill in the name as SQLServer. Select IntegrationRuntime1 (the one you configured earlier) and set Server name to SQL01 and  Database name to sales. Select Windows Authentication and set User name to demogod and enter your password. Now click Test connection to ensure everything  is working correctly.
+
+Remember SQL01 is the SQL Server VM we created in our private corporate network to host the source Sales database. Having registered the self hosted integration runtime with Azure Data Factory (by using the Authentication Key generated in the registration process) Azure Data Factory can now securly access the corporate network hosted resources i.e. SQL01. 
+
+Now click Finish.
 
 ![NewLinkedSQL2.png](images/NewLinkedSQL2.png)
 
