@@ -3,7 +3,7 @@
 ## Introduction
 
 During this lab we will create a Logic App to download weather data from an Internet API. This data will later be used to enrich the sales data we imported with Data Factory in the first lab.
-In the logic app, we’ll be making the following structure. A timer will kick off the run once per day, then call the API for each city in the list then write the response to our data lake if it succeeds. If not you can send a mail or tweet to yourself.
+In the logic app, we’ll be making the below structure. A timer will kick off the run once per day, then call the API for each city in the list then write the response to our data lake if it succeeds. If not you can send a mail or tweet to yourself.
 
 The solution is shown here:
 
